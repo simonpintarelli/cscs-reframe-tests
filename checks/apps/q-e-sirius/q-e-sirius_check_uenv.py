@@ -67,7 +67,7 @@ def uenv_uarch():
     return osext.run_command(uenv_inspect_cmd, shell=True).stdout.strip()
 
 
-class QeSiriusCheckUENVBase(rfm.RunOnlyRegressionTest):
+class QeSiriusCheckUENVBase(rfm.RegressionMixin):
     pwx_executable = 'pw.x'
     maintainers = ['simonpintarelli', 'SSA']
     valid_systems = ['+uenv +amdgpu', '+uenv +nvgpu']
@@ -124,7 +124,7 @@ class QeSiriusCheckUENVBase(rfm.RunOnlyRegressionTest):
             }
 
 
-class QeSiriusCheckTotalEnergy(rfm.RunOnlyRegressionTest):
+class QeSiriusCheckTotalEnergy(rfm.RegressionMixin):
     @sanity_function
     def assert_energy_diff(self):
         energy = sn.extractsingle(
@@ -145,7 +145,7 @@ class QeSiriusCheckTotalEnergy(rfm.RunOnlyRegressionTest):
         )
 
 
-class QeSiriusCheckWalltime(rfm.RunOnlyRegressionTest):
+class QeSiriusCheckWalltime(rfm.RegressionMixin):
     # INFO: The name of this function needs to match with the reference dict!
     @performance_function('s')
     def time_run(self):
@@ -154,7 +154,7 @@ class QeSiriusCheckWalltime(rfm.RunOnlyRegressionTest):
         )
 
 
-class QeSiriusExectuableSetup(rfm.RunOnlyRegressionTest):
+class QeSiriusExectuableSetup(rfm.RegressionMixin):
     valid_prog_environs = ['+uenv +q-e-sirius']
     tags = {'uenv', 'production', 'bencher'}
     @run_after('setup')
