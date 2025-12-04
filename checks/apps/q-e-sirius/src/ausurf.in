@@ -4,7 +4,7 @@
   restart_mode = 'from_scratch',
   tprnfor = .TRUE.,
   prefix = 'ausurf',
-  pseudo_dir = './',
+  pseudo_dir = './pseudo',
   outdir = './out/'
   disk_io = 'none'
 /

@@ -15,6 +15,7 @@ qe_references = {
         'gh200': {'time_run': (50, None, 0.05, 's')},
         'mi300': {'time_run': (112, None, 0.05, 's')},
         'mi200': {'time_run': (78, None, 0.05, 's')},
+        'energy_reference': -11427.09017218
     },
 }
 
@@ -66,7 +67,7 @@ def uenv_uarch():
     return osext.run_command(uenv_inspect_cmd, shell=True).stdout.strip()
 
 
-class QeSiriusCheckUENV(rfm.RunOnlyRegressionTest):
+class QeSiriusCheckUENVBase():
     pwx_executable = 'pw.x'
     maintainers = ['simonpintarelli', 'SSA']
     valid_systems = ['+uenv +amdgpu', '+uenv +nvgpu']
@@ -122,6 +123,8 @@ class QeSiriusCheckUENV(rfm.RunOnlyRegressionTest):
                 qe_references[self.test_name][self.uarch]
             }
 
+
+class QeSiriusCheckTotalEnergy():
     @sanity_function
     def assert_energy_diff(self):
         energy = sn.extractsingle(
@@ -131,7 +134,7 @@ class QeSiriusCheckUENV(rfm.RunOnlyRegressionTest):
             float,
             item=-1,
         )
-        energy_diff = sn.abs(energy - self.energy_reference)
+        energy_diff = sn.abs(energy - self.reference['energy_reference'])
         successful_termination = sn.assert_found(r'JOB DONE', self.stdout)
         correct_energy = sn.assert_lt(energy_diff, 5e-4)
         return sn.all(
@@ -141,6 +144,8 @@ class QeSiriusCheckUENV(rfm.RunOnlyRegressionTest):
             ]
         )
 
+
+class QeSiriusCheckWalltime():
     # INFO: The name of this function needs to match with the reference dict!
     @performance_function('s')
     def time_run(self):
@@ -149,17 +154,9 @@ class QeSiriusCheckUENV(rfm.RunOnlyRegressionTest):
         )
 
 
-class QeSiriusCheckAuSurfUENV(QeSiriusCheckUENV):
-    test_name = 'Au surf'
-    executable_opts = ['-i', 'ausurf.in']
-    energy_reference = -11427.09017218
-
-
-@rfm.simple_test
-class QeSiriusCheckAuSurfUENVExec(QeSiriusCheckAuSurfUENV):
+class QeSiriusExectuableSetup:
     valid_prog_environs = ['+uenv +q-e-sirius']
     tags = {'uenv', 'production', 'bencher'}
-
     @run_after('setup')
     def setup_executable(self):
         self.executable = f'pw.x'
@@ -172,3 +169,12 @@ class QeSiriusCheckAuSurfUENVExec(QeSiriusCheckAuSurfUENV):
         if uarch == 'mi300':
             self.executable = \
                 f'./tpx-wrapper.sh pw.x -sirius_cfg sirius-amd.json'
+
+
+@rfm.simple_test
+class QeSiriusCheckAuSurf(rfm.RunOnlyRegressionTest,
+                          QeSiriusExectuableSetup,
+                          QeSiriusCheckWalltime,
+                          QeSiriusCheckTotalEnergy):
+    test_name = 'Au surf'
+    executable_opts = ['-i', 'ausurf.in']
