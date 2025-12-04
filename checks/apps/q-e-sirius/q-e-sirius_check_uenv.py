@@ -67,7 +67,7 @@ def uenv_uarch():
     return osext.run_command(uenv_inspect_cmd, shell=True).stdout.strip()
 
 
-class QeSiriusCheckUENVBase():
+class QeSiriusCheckUENVBase:
     pwx_executable = 'pw.x'
     maintainers = ['simonpintarelli', 'SSA']
     valid_systems = ['+uenv +amdgpu', '+uenv +nvgpu']
@@ -124,7 +124,7 @@ class QeSiriusCheckUENVBase():
             }
 
 
-class QeSiriusCheckTotalEnergy():
+class QeSiriusCheckTotalEnergy:
     @sanity_function
     def assert_energy_diff(self):
         energy = sn.extractsingle(
@@ -145,7 +145,7 @@ class QeSiriusCheckTotalEnergy():
         )
 
 
-class QeSiriusCheckWalltime():
+class QeSiriusCheckWalltime:
     # INFO: The name of this function needs to match with the reference dict!
     @performance_function('s')
     def time_run(self):
