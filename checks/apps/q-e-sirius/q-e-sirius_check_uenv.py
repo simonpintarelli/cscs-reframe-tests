@@ -68,10 +68,6 @@ def uenv_uarch():
 
 
 class QeSiriusCheckUENVBase(rfm.RegressionMixin):
-    pwx_executable = 'pw.x'
-    maintainers = ['simonpintarelli', 'SSA']
-    valid_systems = ['+uenv +amdgpu', '+uenv +nvgpu']
-
     @run_after('setup')
     def skip_unsupported_uenv(self):
         _uarch = uenv.uarch(self.current_partition)
@@ -155,8 +151,6 @@ class QeSiriusCheckWalltime(rfm.RegressionMixin):
 
 
 class QeSiriusExectuableSetup(rfm.RegressionMixin):
-    valid_prog_environs = ['+uenv +q-e-sirius']
-    tags = {'uenv', 'production', 'bencher'}
     @run_after('setup')
     def setup_executable(self):
         self.executable = f'pw.x'
@@ -176,5 +170,10 @@ class QeSiriusCheckAuSurf(rfm.RunOnlyRegressionTest,
                           QeSiriusExectuableSetup,
                           QeSiriusCheckWalltime,
                           QeSiriusCheckTotalEnergy):
+    pwx_executable = 'pw.x'
+    maintainers = ['simonpintarelli', 'SSA']
+    valid_systems = ['+uenv +amdgpu', '+uenv +nvgpu']
+    valid_prog_environs = ['+uenv +q-e-sirius']
+    tags = {'uenv', 'production', 'bencher'}
     test_name = 'Au surf'
     executable_opts = ['-i', 'ausurf.in']
