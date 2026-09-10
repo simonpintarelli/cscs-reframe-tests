@@ -11,6 +11,15 @@ import reframe.utility.udeps as udeps
 import re
 import uenv
 
+from reframe.core.builtins import (
+    fixture,
+    performance_function,
+    run_after,
+    run_before,
+    sanity_function,
+    variable,
+)
+
 
 qe_references = {
     "Au surf": {
@@ -51,7 +60,7 @@ def version_from_uenv():
 
 def parse_qe_version(version_str):
     """Parse a QE version string (e.g. '7.6', '7.4.1') into a comparable
-    tuple of ints, ignoring first non-numeric suffix.
+    tuple of ints, ignoring any trailing non-numeric suffix.
     """
     parts = []
     for tok in (version_str or "").split('.'):
@@ -150,21 +159,20 @@ class QeBuildTestUENV(rfm.CompileOnlyRegressionTest):
                 self.build_system.config_opts += [
                     "-DQE_ENABLE_MPI_GPU_AWARE:BOOL=ON",
                 ]
-                gpu_arch = self.current_partition.select_devices('gpu')[0].arch
+                if parse_qe_version(self.qe_sources.version) >= (7, 5):
+                    self.build_system.config_opts += [
+                        '-DSCALAPACK_LIBRARIES='
+                        '"/user-environment/env/develop/lib/libnvpl_scalapack_lp64.so;'
+                        '/user-environment/env/develop/lib/libnvpl_blacs_lp64_mpich.so"',
+                    ]
+
                 # QE >= 7.6 replaced QE_ENABLE_CUDA/QE_ENABLE_OPENACC with
                 # a single QE_GPU switch (plus QE_GPU_ARCHS), see the
                 # quantum_espresso spack recipe for v7.6.
                 if parse_qe_version(self.qe_sources.version) >= (7, 6):
-                    uenv_dev_dir = '/user-environment/env/develop'
                     self.build_system.config_opts += [
                         '-DQE_GPU="openacc;cuda"',
-                        f'-DQE_GPU_ARCHS={gpu_arch}',
-                        # CMake's FindSCALAPACK cannot auto-detect the
-                        # nvpl-scalapack/nvpl-blacs libraries shipped in
-                        # this uenv, so point it there explicitly.
-                        f'-DSCALAPACK_LIBRARIES='
-                        f'"{uenv_dev_dir}/lib/libnvpl_scalapack_lp64.so;'
-                        f'{uenv_dev_dir}/lib/libnvpl_blacs_lp64_mpich.so"',
+                        '-DQE_GPU_ARCHS=sm_90',
                     ]
                 else:
                     self.build_system.config_opts += [
